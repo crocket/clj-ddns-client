@@ -5,7 +5,7 @@
             [clj-time.periodic :as p]
             [chime :refer [chime-at chime-ch]]
             [taoensso.timbre :as log]
-            [taoensso.timbre.appenders.core :as appenders]
+            [taoensso.timbre.appenders.3rd-party.rotor :as rotor]
             [clj-ddns-client.providers.core :as provider]
             ;; provider implementations
             clj-ddns-client.providers.dnsever)
@@ -44,11 +44,16 @@
   "I don't do a whole lot ... yet."
   [& args]
   (let [config (-> "config.edn" slurp edn/read-string)
-        update-alarms (start-updating! config)]
+        appenders {:file-appender (rotor/rotor-appender
+                                   {:path (:log-file config)})}]
     (log/set-level! (:log-level config))
-    (try
-      (.join (Thread/currentThread))
-      (finally
-        (println "Interrupted")
-        (doseq [alarm update-alarms]
-          (a/close! alarm))))))
+    ;; Configure appenders
+    (log/swap-config! (fn [config]
+                        (assoc config :appenders appenders)))
+    (let [update-alarms (start-updating! config)]
+      (try
+        (.join (Thread/currentThread))
+        (finally
+          (println "Interrupted")
+          (doseq [alarm update-alarms]
+            (a/close! alarm)))))))
