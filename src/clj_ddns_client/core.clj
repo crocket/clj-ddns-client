@@ -17,7 +17,8 @@
   times = A sequence of datetime
   provider = One of :providers in config.edn"
   [times provider]
-  (let [chimes (chime-ch times {:ch (-> 1 a/sliding-buffer a/chan)})]
+  (let [chimes (chime-ch times
+                         {:ch (-> 1 a/sliding-buffer a/chan)})]
     (a/go-loop []
       (when-let [time (a/<! chimes)]
         (try
