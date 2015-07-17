@@ -1,4 +1,4 @@
-(defproject clj-ddns-client "0.1.1"
+(defproject clj-ddns-client "0.1.2"
   :description "It updates DDNS entries of various DDNS providers."
   :url "http://github.com/crocket/clj-ddns-client"
   :license {:name "Eclipse Public License"

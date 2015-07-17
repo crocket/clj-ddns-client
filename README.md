@@ -2,6 +2,10 @@
 
 It updates DDNS entries. It doesn't run as a daemon.
 
+## Supported DDNS Providers
+
+* dnsever
+
 ## Installation
 
 * Copy config.sample.edn to config.edn
@@ -10,7 +14,7 @@ It updates DDNS entries. It doesn't run as a daemon.
 ## Usage
 
 ```
-$ java -jar clj-ddns-client-0.1.1-standalone.jar -h
+$ java -jar clj-ddns-client-0.1.2-standalone.jar -h
 ```
 
 ## License
