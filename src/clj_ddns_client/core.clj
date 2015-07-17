@@ -44,8 +44,10 @@
 
 (def cli-options
   [["-h" "--help"]
-   ["-c" "--log-to-console" "Log to console in addition to a log file"]
-   ["-f" "--logfile PATH" "Path to log file"]])
+   ["-v" "--verbose" "Log to console in addition to a log file"]
+   ["-f" "--logfile PATH" "Path to log file"]
+   ["-c" "--config PATH" "Path to config file"
+    :default "config.edn"]])
 
 (defn- handle-cli-help!
   "Print help if wrong arguments are passed or --help is passed.
@@ -77,7 +79,7 @@
 (defn- apply-cli-options!
   [{:keys [options arguments]}]
   ;; Configure logger according to command line arguments
-  (when (:log-to-console options)
+  (when (:verbose options)
     (log/merge-config! {:appenders {:println (appenders/println-appender)}}))
   (when-let [logfile (:logfile options)]
     (log/merge-config! {:appenders (get-default-appenders logfile)})))
@@ -87,7 +89,7 @@
   [& args]
   (handle-cli-help! args
     (fn [cli-args]
-      (let [config (-> "config.edn" slurp edn/read-string)]
+      (let [config (-> cli-args :options :config slurp edn/read-string)]
         (apply-config! config)
         (apply-cli-options! cli-args)
         ;; start updating DDNS
