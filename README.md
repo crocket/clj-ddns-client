@@ -12,8 +12,13 @@ It updates DDNS entries.
 
 ## Installation
 
-* Copy config.sample.edn to config.edn
+* Download a latest release jar file and config.sample.edn
+* Copy config.sample.edn as config.edn
 * Configure config.edn accordingly.
+* Tweak JVM memory options to minimize memory usage.
+  * -Xmx
+  * -XX:MaxMetaspaceSize
+  * etc...
 
 ## Usage
 
