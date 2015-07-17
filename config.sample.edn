@@ -5,7 +5,7 @@
               :user "User Name"
               :authcode "DDNS Authorization Code"}
              ]
- ; Available log levels = :trace, :debug, :info, :warn, :error, :fatal, :report
+ ;; Available log levels = :trace, :debug, :info, :warn, :error, :fatal, :report
  :loglevel :info
  :log-file "clj-ddns-client.log"
  :update-interval 300 ; seconds
