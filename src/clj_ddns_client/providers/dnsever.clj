@@ -25,12 +25,12 @@
 
 (defmethod provider/update! :dnsever
   [config]
-  (-> config
-      get-domains
-      dnsever-ddns-update-url
-      (client/get {:basic-auth [(:user config) (:authcode config)]})
-      (#(provider/log! config
-                       (format "HTTP Status = %s\n%s"
-                               (:status %)
-                               (s/trim (:body %)))
-                       :debug))))
+  (let [result (-> config
+                   get-domains
+                   dnsever-ddns-update-url
+                   (client/get {:basic-auth [(:user config) (:authcode config)]}))]
+    (provider/log! config
+                   (format "HTTP Status = %s\n%s"
+                           (:status result)
+                           (s/trim (:body result)))
+                   :debug)))
