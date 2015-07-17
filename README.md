@@ -10,20 +10,8 @@ It updates DDNS entries.
 ## Usage
 
 ```
-$ java -jar clj-ddns-client-0.1.0-standalone.jar [args]
+$ java -jar clj-ddns-client-0.1.0-standalone.jar -h
 ```
-
-## Options
-
-FIXME: listing of options this app accepts.
-
-## Examples
-
-...
-
-### Bugs
-
-...
 
 ## License
 
