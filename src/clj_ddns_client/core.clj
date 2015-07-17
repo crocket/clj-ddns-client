@@ -64,34 +64,52 @@
         (println (:summary cli-args)))
       (f cli-args))))
 
-(defn- get-default-appenders
-  [logfile]
-  {:file-appender (rotor/rotor-appender
-                   {:path logfile})})
+(defn- apply-config-to-logger
+  "Add logger options according to cofig.edn"
+  [{:keys [log-level log-file log-file-size log-file-count]} log-config]
+  (cond-> log-config
+    log-level (assoc :level log-level)
+    log-file (assoc-in [:appenders :file-appender :arg-map :path] log-file)
+    log-file-size (assoc-in [:appenders :file-appender :arg-map :max-size] log-file-size)
+    log-file-count (assoc-in [:appenders :file-appender :arg-map :backlog] log-file-count)))
 
-(defn- apply-config!
-  [config]
-  ;; Configure logger according to cofig.edn
-  (log/set-level! (:log-level config))
+(defn- apply-cli-options-to-logger
+  "Add logger options according to command line arguments"
+  [{{:keys [verbose logfile]} :options arguments :arguments} log-config]
+  (cond-> log-config
+    verbose (assoc-in [:appenders :println :fn] appenders/println-appender)
+    logfile (assoc-in [:appenders :file-appender :arg-map :path] logfile)))
+
+(defn- reify-appenders
+  "Convert {:appenders {:appender-id {:fn fn :arg-map arg-map}}} to
+  {:appenders {:appender-id (fn arg-map)}}"
+  [log-config]
+  (reduce (fn [log-config appender-id]
+            (update-in log-config [:appenders appender-id] (fn [{:keys [fn arg-map]}]
+                                                             (fn arg-map))))
+          log-config
+          (keys (:appenders log-config))))
+
+(defn- apply-log-config!
+  [log-config]
+  ;; override appenders
   (log/swap-config! (fn [c]
-                      (assoc c :appenders (get-default-appenders (:log-file config))))))
-
-(defn- apply-cli-options!
-  [{:keys [options arguments]}]
-  ;; Configure logger according to command line arguments
-  (when (:verbose options)
-    (log/merge-config! {:appenders {:println (appenders/println-appender)}}))
-  (when-let [logfile (:logfile options)]
-    (log/merge-config! {:appenders (get-default-appenders logfile)})))
+                      (assoc c :appenders (:appenders log-config))))
+  ;; merge the rest
+  (log/merge-config! (dissoc log-config :appenders)))
 
 (defn -main
   "I don't do a whole lot ... yet."
   [& args]
   (handle-cli-help! args
     (fn [cli-args]
-      (let [config (-> cli-args :options :config slurp edn/read-string)]
-        (apply-config! config)
-        (apply-cli-options! cli-args)
+      (let [config (-> cli-args :options :config slurp edn/read-string)
+            log-config {:appenders {:file-appender {:fn rotor/rotor-appender}}}]
+        (->> log-config
+             (apply-config-to-logger config)
+             (apply-cli-options-to-logger cli-args)
+             reify-appenders
+             apply-log-config!)
         ;; start updating DDNS
         (let [update-alarms (start-updating! config)]
           (try

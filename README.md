@@ -23,7 +23,7 @@ It updates DDNS entries.
 ## Usage
 
 ```
-$ java -jar clj-ddns-client-0.1.2-standalone.jar -h
+$ java -jar clj-ddns-client-1.0.0-standalone.jar -h
 ```
 
 ## License
