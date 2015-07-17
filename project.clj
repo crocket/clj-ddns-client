@@ -1,8 +1,10 @@
-(defproject clj-ddns-client "0.1.2"
+(defproject clj-ddns-client "0.1.3-SNAPSHOT"
   :description "It updates DDNS entries of various DDNS providers."
   :url "http://github.com/crocket/clj-ddns-client"
-  :license {:name "Eclipse Public License"
-            :url "http://www.eclipse.org/legal/epl-v10.html"}
+  :license {:name "GNU Lesser General Public License v3.0"
+            :url "http://www.gnu.org/licenses/lgpl-3.0.txt"
+            :year 2015
+            :key "lgpl-3.0"}
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [clj-time "0.10.0"]
                  [jarohen/chime "0.1.6"]
