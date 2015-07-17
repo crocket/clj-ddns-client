@@ -1,6 +1,6 @@
 # clj-ddns-client
 
-It updates DDNS entries.
+It updates DDNS entries. It doesn't run as a daemon.
 
 ## Installation
 
@@ -10,7 +10,7 @@ It updates DDNS entries.
 ## Usage
 
 ```
-$ java -jar clj-ddns-client-0.1.0-standalone.jar -h
+$ java -jar clj-ddns-client-0.1.1-standalone.jar -h
 ```
 
 ## License
