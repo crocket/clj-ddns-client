@@ -25,29 +25,29 @@
   If a provider update throws an exception, the channel is closed.
   The thread is automatically closed when the channel is closed.
   provider = One of :providers in config.edn"
-  [chimes provider]
+  [schedule provider]
   (a/go-loop []
-    (when-let [time (a/<! chimes)]
+    (when-let [time (a/<! schedule)]
       (try
         (provider/update! provider)
         (catch Exception e
           (log/error e)
-          (a/close! chimes)))
+          (a/close! schedule)))
       (recur))))
 
 (defn- start-updating!
   "It launches new threads that update providers accoring to schedule.
-  It returns [{:updater-ch 'a channel that emits a value when it exits'
-               :chimes 'a channel that signals schedules'} ...].
-  Close the :chimes to cancel schedules and kill its associated updater thread."
+  It returns [{:updater 'a channel that emits when the associated thread exits'
+               :schedule 'a channel that signals schedules'} ...].
+  Close :schedule to cancel schedules and kill its associated updater thread."
   [config]
   (let [times (p/periodic-seq (t/now)
                               (-> (:update-interval config) t/seconds))]
     (doall (map (fn [provider]
                   (let [channel (-> 1 a/sliding-buffer a/chan)
-                        chimes (chime-ch times {:ch channel})]
-                    {:updater-ch (launch-provider-updater! chimes provider)
-                     :chimes chimes}))
+                        schedule (chime-ch times {:ch channel})]
+                    {:updater (launch-provider-updater! schedule provider)
+                     :schedule schedule}))
                 (:providers config)))))
 
 (defn- handle-cli-help!
@@ -117,24 +117,26 @@
   (log/merge-config! (dissoc log-config :appenders)))
 
 (defn -main
-  "I don't do a whole lot ... yet."
+  "Start DDNS client"
   [& args]
   (handle-cli-help!
    args
    (fn [cli-args]
      (let [config (-> cli-args :options :config slurp edn/read-string)]
+       ;; Construct log config and apply it to logger
        (->> {:appenders {:file-appender {:fn rotor/rotor-appender}}}
             (apply-config-to-logger config)
             (apply-cli-options-to-logger cli-args)
             reify-appenders
             (turn-off-ansi-colors-in :file-appender)
             apply-log-config!)
-       ;; start updating DDNS
-       (let [update-alarms (start-updating! config)]
+       ;; Start DDNS provider updaters
+       (let [updaters (start-updating! config)]
          (try
            ;; Quit the program if any provider updater stops.
-           (a/alts!! (into [] (map :updater-ch update-alarms)))
+           (a/alts!! (into [] (map :updater updaters)))
            (finally ; This is executed in REPL to clean up updaters.
              (println "Finished")
-             (doseq [alarm (map :chimes update-alarms)]
-               (a/close! alarm))))))))) ; closing chimes kills updaters.
+             (doseq [schedule (map :schedule updaters)]
+               ;; Closing schedule kills its associated updater.
+               (a/close! schedule)))))))))
