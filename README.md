@@ -13,7 +13,7 @@ It updates DDNS entries.
 ## Build
 
 * Install JDK and leiningen
-* Execute `lein uberjar` in this directory.
+* Execute `lein uberjar` in the same directory as README.md.
 
 ## Installation
 
