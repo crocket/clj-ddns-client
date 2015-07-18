@@ -63,21 +63,37 @@
         (println (:summary cli-args)))
       (f cli-args))))
 
+(defn- assoc-in-cond3
+  "Associate val in a nested map structure when cond is true.
+  You can specify multiple cond-keys-val triplets."
+  [m & cond-keys-vals]
+  (reduce (fn [m [cond keys val]] (if cond (assoc-in m keys val) m))
+          m
+          (partition 3 cond-keys-vals)))
+
+(defn- assoc-in-cond
+  "Associate a val to a nested key in a map when the key is true.
+  You can specify multiple keys-val pairs."
+  [m & keys-vals]
+  (reduce (fn [m [keys val]] (if val (assoc-in m keys val) m))
+          m
+          (partition 2 keys-vals)))
+
 (defn- apply-config-to-logger
   "Add logger options according to cofig.edn"
   [{:keys [log-level log-file log-file-size log-file-count]} log-config]
-  (cond-> log-config
-    log-level (assoc :level log-level)
-    log-file (assoc-in [:appenders :file-appender :arg-map :path] log-file)
-    log-file-size (assoc-in [:appenders :file-appender :arg-map :max-size] log-file-size)
-    log-file-count (assoc-in [:appenders :file-appender :arg-map :backlog] log-file-count)))
+  (assoc-in-cond log-config
+                 [:level] log-level
+                 [:appenders :file-appender :arg-map :path] log-file
+                 [:appenders :file-appender :arg-map :max-size] log-file-size
+                 [:appenders :file-appender :arg-map :backlog] log-file-count))
 
 (defn- apply-cli-options-to-logger
   "Add logger options according to command line arguments"
   [{{:keys [verbose logfile]} :options arguments :arguments} log-config]
-  (cond-> log-config
-    verbose (assoc-in [:appenders :println :fn] appenders/println-appender)
-    logfile (assoc-in [:appenders :file-appender :arg-map :path] logfile)))
+  (assoc-in-cond3 log-config
+                  verbose [:appenders :println :fn] appenders/println-appender
+                  logfile [:appenders :file-appender :arg-map :path] logfile))
 
 (defn- reify-appenders
   "Convert {:appenders {:appender-id {:fn fn :arg-map arg-map}}} to
