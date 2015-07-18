@@ -9,6 +9,7 @@
             [taoensso.timbre.appenders.3rd-party.rotor :as rotor]
             [clj-ddns-client.providers.core :as provider]
             [clojure.tools.cli :as cli]
+            [io.aviso.exception :as aviso-ex]
             ;; provider implementations
             clj-ddns-client.providers.dnsever)
   (:gen-class))
@@ -96,6 +97,15 @@
                   verbose [:appenders :println :fn] appenders/println-appender
                   logfile [:appenders :file-appender :arg-map :path] logfile))
 
+(defn- turn-off-ansi-colors-in
+  "This is a workaround of https://github.com/ptaoussanis/timbre/issues/117"
+  [appender-id log-config]
+  (update-in log-config [:appenders appender-id :fn]
+             (fn [f]
+               (fn [data]
+                 (binding [aviso-ex/*fonts* {}]
+                   (f data))))))
+
 (defn- reify-appenders
   "Convert {:appenders {:appender-id {:fn fn :arg-map arg-map}}} to
   {:appenders {:appender-id (fn arg-map)}}"
@@ -121,6 +131,7 @@
              (apply-config-to-logger config)
              (apply-cli-options-to-logger cli-args)
              reify-appenders
+             (turn-off-ansi-colors-in :file-appender)
              apply-log-config!)
         ;; start updating DDNS
         (let [update-alarms (start-updating! config)]
