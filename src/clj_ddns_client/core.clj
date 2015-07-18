@@ -65,7 +65,7 @@
       (f cli-args))))
 
 (defn- assoc-in-cond3
-  "Associate val in a nested map structure when cond is true.
+  "Associate val in a nested key when cond is true.
   You can specify multiple cond-keys-val triplets."
   [m & cond-keys-vals]
   (reduce (fn [m [cond keys val]] (if cond (assoc-in m keys val) m))
@@ -119,21 +119,22 @@
 (defn -main
   "I don't do a whole lot ... yet."
   [& args]
-  (handle-cli-help! args
-    (fn [cli-args]
-      (let [config (-> cli-args :options :config slurp edn/read-string)]
-        (->> {:appenders {:file-appender {:fn rotor/rotor-appender}}}
-             (apply-config-to-logger config)
-             (apply-cli-options-to-logger cli-args)
-             reify-appenders
-             (turn-off-ansi-colors-in :file-appender)
-             apply-log-config!)
-        ;; start updating DDNS
-        (let [update-alarms (start-updating! config)]
-          (try
-            ;; Quit the program if any provider updater stops.
-            (a/alts!! (into [] (map :updater-ch update-alarms)))
-            (finally ; This is executed in REPL to clean up updaters.
-              (println "Finished")
-              (doseq [alarm (map :chimes update-alarms)]
-                (a/close! alarm))))))))) ; closing chimes kills updaters.
+  (handle-cli-help!
+   args
+   (fn [cli-args]
+     (let [config (-> cli-args :options :config slurp edn/read-string)]
+       (->> {:appenders {:file-appender {:fn rotor/rotor-appender}}}
+            (apply-config-to-logger config)
+            (apply-cli-options-to-logger cli-args)
+            reify-appenders
+            (turn-off-ansi-colors-in :file-appender)
+            apply-log-config!)
+       ;; start updating DDNS
+       (let [update-alarms (start-updating! config)]
+         (try
+           ;; Quit the program if any provider updater stops.
+           (a/alts!! (into [] (map :updater-ch update-alarms)))
+           (finally ; This is executed in REPL to clean up updaters.
+             (println "Finished")
+             (doseq [alarm (map :chimes update-alarms)]
+               (a/close! alarm))))))))) ; closing chimes kills updaters.
