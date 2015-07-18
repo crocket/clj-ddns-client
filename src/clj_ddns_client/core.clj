@@ -54,10 +54,9 @@
   Otherwise, invoke f with command line arguments parsed by clojure.tools.cli"
   [args f]
   (let [cli-args (cli/parse-opts args cli-options)
-        errors (:errors cli-args)
-        options (:options cli-args)]
+        errors (:errors cli-args)]
     (if (or errors
-            (:help options))
+            (-> cli-args :options :help))
       (do
         (doseq [error errors]
           (println error))
@@ -93,8 +92,7 @@
 (defn- apply-log-config!
   [log-config]
   ;; override appenders
-  (log/swap-config! (fn [c]
-                      (assoc c :appenders (:appenders log-config))))
+  (log/swap-config! #(assoc % :appenders (:appenders log-config)))
   ;; merge the rest
   (log/merge-config! (dissoc log-config :appenders)))
 
@@ -103,9 +101,8 @@
   [& args]
   (handle-cli-help! args
     (fn [cli-args]
-      (let [config (-> cli-args :options :config slurp edn/read-string)
-            log-config {:appenders {:file-appender {:fn rotor/rotor-appender}}}]
-        (->> log-config
+      (let [config (-> cli-args :options :config slurp edn/read-string)]
+        (->> {:appenders {:file-appender {:fn rotor/rotor-appender}}}
              (apply-config-to-logger config)
              (apply-cli-options-to-logger cli-args)
              reify-appenders
