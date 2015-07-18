@@ -37,16 +37,17 @@
 
 (defn- start-updating!
   "It launches new threads that update providers accoring to schedule.
-  It returns a channel for each provider that signal ddns entry updates every :update-interval seconds.
-  Close the channels to cancel schedules."
+  It returns [{:updater-ch 'a channel that emits a value when it exits'
+               :chimes 'a channel that signals schedules'} ...].
+  Close the :chimes to cancel schedules and kill its associated updater thread."
   [config]
   (let [times (p/periodic-seq (t/now)
                               (-> (:update-interval config) t/seconds))]
     (doall (map (fn [provider]
-                  (let [chimes (chime-ch times {:ch
-                                                (-> 1 a/sliding-buffer a/chan)})]
-                    (launch-provider-updater! chimes provider)
-                    chimes))
+                  (let [channel (-> 1 a/sliding-buffer a/chan)
+                        chimes (chime-ch times {:ch channel})]
+                    {:updater-ch (launch-provider-updater! chimes provider)
+                     :chimes chimes}))
                 (:providers config)))))
 
 (defn- handle-cli-help!
@@ -124,8 +125,9 @@
         ;; start updating DDNS
         (let [update-alarms (start-updating! config)]
           (try
-            (.join (Thread/currentThread))
-            (finally
-              (println "Interrupted")
-              (doseq [alarm update-alarms]
-                (a/close! alarm)))))))))
+            ;; Quit the program if any provider updater stops.
+            (a/alts!! (into [] (map :updater-ch update-alarms)))
+            (finally ; This is executed in REPL to clean up updaters.
+              (println "Finished")
+              (doseq [alarm (map :chimes update-alarms)]
+                (a/close! alarm))))))))) ; closing chimes kills updaters.
