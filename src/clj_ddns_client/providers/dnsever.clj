@@ -3,18 +3,11 @@
             [clj-http.client :as client]
             [clj-ddns-client.providers.core :as provider]))
 
-(defn- fully-qualified-subdomains
-  "Combine domain with subdomains to acquire fully qualified domains"
-  [domain subdomains]
-  (map (fn [subdomain]
-         (if (= subdomain "")
-           domain
-           (str subdomain "." domain)))
-       subdomains))
-
 (defn- get-domains
   [config]
-  (fully-qualified-subdomains (:domain config) (:subdomains config)))
+  (let [domain (:domain config)]
+    (map #(str % (when (not= "" %) ".") domain)
+         (:subdomains config))))
 
 (defn- dnsever-ddns-update-url
   [domains]
