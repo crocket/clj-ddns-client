@@ -9,7 +9,6 @@
             [taoensso.timbre.appenders.3rd-party.rotor :as rotor]
             [clj-ddns-client.providers.core :as provider]
             [clojure.tools.cli :as cli]
-            [io.aviso.exception :as aviso-ex]
             ;; provider implementations
             clj-ddns-client.providers.dnsever)
   (:gen-class))
@@ -98,13 +97,9 @@
                   logfile [:appenders :file-appender :arg-map :path] logfile))
 
 (defn- turn-off-ansi-colors-in
-  "This is a workaround of https://github.com/ptaoussanis/timbre/issues/117"
   [appender-id log-config]
-  (update-in log-config [:appenders appender-id :fn]
-             (fn [f]
-               (fn [data]
-                 (binding [aviso-ex/*fonts* {}]
-                   (f data))))))
+  (assoc-in log-config [:appenders appender-id :output-fn]
+            (partial log/default-output-fn {:stacktrace-fonts {}})))
 
 (defn- reify-appenders
   "Convert {:appenders {:appender-id {:fn fn :arg-map arg-map}}} to

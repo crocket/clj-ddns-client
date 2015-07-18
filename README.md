@@ -28,8 +28,10 @@ It updates DDNS entries.
 ## Usage
 
 ```
-$ java -jar clj-ddns-client-1.1.0-standalone.jar -h
+$ java -jar clj-ddns-client-x.x.x-standalone.jar -h
 ```
+
+x.x.x is a placeholder for a version
 
 ## License
 
