@@ -4,8 +4,8 @@
             [clj-ddns-client.providers.core :as provider]))
 
 (defn- fully-qualified-subdomains
-  [domain subdomains]
   "Combine domain with subdomains to acquire fully qualified domains"
+  [domain subdomains]
   (map (fn [subdomain]
          (if (= subdomain "")
            domain

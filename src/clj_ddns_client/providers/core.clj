@@ -13,9 +13,10 @@
 
 (defn log!
   "Record a log. Default log level is :info.
-  Available log levels = :trace :debug :info :warn :error :fatal :report"
+  Refer to config.sample.edn for available log levels."
   ([config log-string log-level]
-   (log/log log-level (str "DDNS Provider : " (name (:provider config)) "\n"
-                           log-string)))
+   (log/log log-level (format "DDNS Provider : %s\n%s"
+                              (name (:provider config))
+                              log-string)))
   ([config log-string]
    (log! config log-string :info)))
