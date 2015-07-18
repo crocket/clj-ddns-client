@@ -10,6 +10,11 @@ It updates DDNS entries.
 
 * It doesn't run as a daemon.
 
+## Build
+
+* Install JDK and leiningen
+* Execute `lein uberjar` in this directory.
+
 ## Installation
 
 * Download a latest release jar file and config.sample.edn
