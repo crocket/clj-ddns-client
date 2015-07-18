@@ -20,34 +20,34 @@
    ["-c" "--config PATH" "Path to config file"
     :default "config.edn"]])
 
-(defn- make-provider-updater!
-  "Make an alarm channel and a new thread that updates the given provider according to the alarm.
-  Returns the alarm channel.
-  times = A sequence of datetime
+(defn- launch-provider-updater!
+  "It launches a new thread that updates the given provider according to chime signals.
+  If a provider update throws an exception, the channel is closed.
+  The thread is automatically closed when the channel is closed.
   provider = One of :providers in config.edn"
-  [times provider]
-  (let [chimes (chime-ch times
-                         {:ch (-> 1 a/sliding-buffer a/chan)})]
-    (a/go-loop []
-      (when-let [time (a/<! chimes)]
-        (try
-          (provider/update! provider)
-          (catch Exception e
-            (log/error e)
-            (a/close! chimes)))
-        (recur)))
-    chimes))
+  [chimes provider]
+  (a/go-loop []
+    (when-let [time (a/<! chimes)]
+      (try
+        (provider/update! provider)
+        (catch Exception e
+          (log/error e)
+          (a/close! chimes)))
+      (recur))))
 
 (defn- start-updating!
-  "Returns alarm channels that signal ddns entry updates every :update-interval seconds.
-  Close the channels to cancel schedules.
-  config = config.edn"
+  "It launches new threads that update providers accoring to schedule.
+  It returns a channel for each provider that signal ddns entry updates every :update-interval seconds.
+  Close the channels to cancel schedules."
   [config]
   (let [times (p/periodic-seq (t/now)
-                              (-> (:update-interval config) t/seconds))
-        providers (:providers config)]
-    (doall (map (partial make-provider-updater! times)
-                providers))))
+                              (-> (:update-interval config) t/seconds))]
+    (doall (map (fn [provider]
+                  (let [chimes (chime-ch times {:ch
+                                                (-> 1 a/sliding-buffer a/chan)})]
+                    (launch-provider-updater! chimes provider)
+                    chimes))
+                (:providers config)))))
 
 (defn- handle-cli-help!
   "Print help if wrong arguments are passed or --help is passed.
