@@ -13,6 +13,13 @@
             clj-ddns-client.providers.dnsever)
   (:gen-class))
 
+(def cli-options
+  [["-h" "--help"]
+   ["-v" "--verbose" "Log to console in addition to a log file"]
+   ["-f" "--logfile PATH" "Path to log file"]
+   ["-c" "--config PATH" "Path to config file"
+    :default "config.edn"]])
+
 (defn- make-provider-updater!
   "Make an alarm channel and a new thread that updates the given provider according to the alarm.
   Returns the alarm channel.
@@ -41,13 +48,6 @@
         providers (:providers config)]
     (doall (map (partial make-provider-updater! times)
                 providers))))
-
-(def cli-options
-  [["-h" "--help"]
-   ["-v" "--verbose" "Log to console in addition to a log file"]
-   ["-f" "--logfile PATH" "Path to log file"]
-   ["-c" "--config PATH" "Path to config file"
-    :default "config.edn"]])
 
 (defn- handle-cli-help!
   "Print help if wrong arguments are passed or --help is passed.
