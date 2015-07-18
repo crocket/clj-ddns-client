@@ -99,11 +99,9 @@
   "Convert {:appenders {:appender-id {:fn fn :arg-map arg-map}}} to
   {:appenders {:appender-id (fn arg-map)}}"
   [log-config]
-  (reduce (fn [log-config appender-id]
-            (update-in log-config [:appenders appender-id] (fn [{:keys [fn arg-map]}]
-                                                             (fn arg-map))))
-          log-config
-          (keys (:appenders log-config))))
+  (update-in log-config [:appenders] #(reduce-kv (fn [m k {:keys [fn arg-map]}]
+                                                   (assoc m k (fn arg-map)))
+                                                 {} %)))
 
 (defn- apply-log-config!
   [log-config]
