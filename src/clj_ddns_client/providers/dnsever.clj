@@ -1,12 +1,13 @@
 (ns clj-ddns-client.providers.dnsever
   (:require [clojure.string :as s]
             [clj-http.client :as client]
-            [clj-ddns-client.provider :as provider]))
+            [clj-ddns-client.provider :as provider]
+            [clojure.tools.logging :as log]))
 
 (defn- get-domains
   [config]
   (let [domain (:domain config)]
-    (map #(str % (when (not= "" %) ".") domain)
+    (map #(str % (when-not (= "" %) ".") domain)
          (:subdomains config))))
 
 (defn- dnsever-ddns-update-url
@@ -23,8 +24,6 @@
                    dnsever-ddns-update-url
                    (client/get {:basic-auth [(:user config)
                                              (:authcode config)]}))]
-    (provider/log! config
-                   (format "HTTP Status = %s\n%s"
-                           (:status result)
-                           (s/trim (:body result)))
-                   :debug)))
+    (log/infof "HTTP Status = %s\n%s"
+               (:status result)
+               (s/trim (:body result)))))

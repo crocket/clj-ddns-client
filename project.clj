@@ -9,7 +9,10 @@
                  [clj-time "0.10.0"]
                  [jarohen/chime "0.1.6"]
                  [clj-http "1.1.2"]
-                 [com.taoensso/timbre "4.0.2"]
+                 ;; logging
+                 [spootnik/unilog "0.7.5"]
+                 [org.clojure/tools.logging "0.3.1"]
+                 ;; cli
                  [org.clojure/tools.cli "0.3.1"]]
   :main ^:skip-aot clj-ddns-client.core
   :target-path "target/%s"
