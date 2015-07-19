@@ -4,11 +4,12 @@
             [clj-time.core :as t]
             [clj-time.periodic :as p]
             [chime :refer [chime-at chime-ch]]
-            [clj-ddns-client.unilog-fix]
             [unilog.config :refer [start-logging!]]
             [clojure.tools.logging :as log]
             [clj-ddns-client.provider :as provider]
             [clojure.tools.cli :as cli]
+            ;; It works around :file-rolling appender issue.
+            clj-ddns-client.unilog-fix
             ;; provider implementations
             clj-ddns-client.providers.dnsever)
   (:gen-class))
