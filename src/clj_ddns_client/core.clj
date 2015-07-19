@@ -20,8 +20,8 @@
    ["-c" "--config PATH" "Path to config file"
     :default "config.edn"]])
 
-(defn- launch-provider-updater!
-  "It launches a new thread that updates the given provider according to chime signals.
+(defn- launch-updater!
+  "It launches a new thread that updates provider according to schedule.
   If a provider update throws an exception, the channel is closed.
   The thread is automatically closed when the channel is closed.
   provider = One of :providers in config.edn"
@@ -35,10 +35,10 @@
           (a/close! schedule)))
       (recur))))
 
-(defn- start-updating!
+(defn- start-updaters!
   "It launches new threads that update providers accoring to schedule.
-  It returns [{:updater 'a channel that emits when the associated thread exits'
-               :schedule 'a channel that signals schedules'} ...].
+  It returns [{:updater 'channel that emits when the associated thread exits'
+               :schedule 'channel that signals schedules'} ...].
   Close :schedule to cancel schedules and kill its associated updater thread."
   [config]
   (let [times (p/periodic-seq (t/now)
@@ -46,7 +46,7 @@
     (doall (map (fn [provider]
                   (let [channel (-> 1 a/sliding-buffer a/chan)
                         schedule (chime-ch times {:ch channel})]
-                    {:updater (launch-provider-updater! schedule provider)
+                    {:updater (launch-updater! schedule provider)
                      :schedule schedule}))
                 (:providers config)))))
 
@@ -104,10 +104,10 @@
 (defn- reify-appenders
   "Convert {:appenders {:appender-id {:fn fn :arg-map arg-map}}} to
   {:appenders {:appender-id (fn arg-map)}}"
-  [log-config]
-  (update-in log-config [:appenders] #(reduce-kv (fn [m k {:keys [fn arg-map]}]
-                                                   (assoc m k (fn arg-map)))
-                                                 {} %)))
+  [log-conf]
+  (update-in log-conf [:appenders] #(reduce-kv (fn [m k {:keys [fn arg-map]}]
+                                                 (assoc m k (fn arg-map)))
+                                               {} %)))
 
 (defn- apply-log-config!
   [log-config]
@@ -131,7 +131,7 @@
             (turn-off-ansi-colors-in :file-appender)
             apply-log-config!)
        ;; Start DDNS provider updaters
-       (let [updaters (start-updating! config)]
+       (let [updaters (start-updaters! config)]
          (try
            ;; Quit the program if any provider updater stops.
            (a/alts!! (into [] (map :updater updaters)))

@@ -21,7 +21,8 @@
   (let [result (-> config
                    get-domains
                    dnsever-ddns-update-url
-                   (client/get {:basic-auth [(:user config) (:authcode config)]}))]
+                   (client/get {:basic-auth [(:user config)
+                                             (:authcode config)]}))]
     (provider/log! config
                    (format "HTTP Status = %s\n%s"
                            (:status result)
