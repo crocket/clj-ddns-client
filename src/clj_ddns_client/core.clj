@@ -7,7 +7,7 @@
             [taoensso.timbre :as log]
             [taoensso.timbre.appenders.core :as appenders]
             [taoensso.timbre.appenders.3rd-party.rotor :as rotor]
-            [clj-ddns-client.providers.core :as provider]
+            [clj-ddns-client.provider :as provider]
             [clojure.tools.cli :as cli]
             ;; provider implementations
             clj-ddns-client.providers.dnsever)

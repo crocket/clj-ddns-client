@@ -1,4 +1,4 @@
-(ns clj-ddns-client.providers.core
+(ns clj-ddns-client.provider
   (:require [taoensso.timbre :as log]))
 
 (defmulti update!

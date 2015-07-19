@@ -1,7 +1,7 @@
 (ns clj-ddns-client.providers.dnsever
   (:require [clojure.string :as s]
             [clj-http.client :as client]
-            [clj-ddns-client.providers.core :as provider]))
+            [clj-ddns-client.provider :as provider]))
 
 (defn- get-domains
   [config]
