@@ -6,7 +6,7 @@
               :authcode "DDNS Authorization Code"}
              ]
  ;; Available log levels = :trace, :debug, :info, :warn, :error, :fatal
- :loglevel :info
+ :log-level :info
  :log-file "clj-ddns-client.log"
  :log-file-size 51200 ; 50KB = 1024 * 50 bytes = 51200 bytes
  :log-file-count 5 ; number of logs to keep
