@@ -93,7 +93,7 @@
                  [:appenders 0 :file] log-file
                  [:appenders 0 :triggering-policy :max-size] log-file-size
                  [:appenders 0 :rolling-policy :max-index] log-file-count
-                 [:overrides] (reduce-kv #(assoc %1 %2 (name %3)) {} overrides)))
+                 [:overrides] (into {} (map #(update % 1 name) overrides))))
 
 (defn- apply-cli-options-to-logger
   "Add logger options according to command line arguments"
