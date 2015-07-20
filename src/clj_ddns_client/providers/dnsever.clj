@@ -24,6 +24,6 @@
                    dnsever-ddns-update-url
                    (client/get {:basic-auth [(:user config)
                                              (:authcode config)]}))]
-    (log/infof "HTTP Status = %s\n%s"
+    (log/infof "\nHTTP Status = %s\n%s"
                (:status result)
                (s/trim (:body result)))))
