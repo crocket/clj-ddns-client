@@ -8,8 +8,8 @@
             [clojure.tools.logging :as log]
             [clj-ddns-client.provider :as provider]
             [clojure.tools.cli :as cli]
-            ;; It works around :file-rolling appender issue.
-            clj-ddns-client.unilog-fix
+            ;; It works around :file-rolling appender issues in unilog 0.7.5.
+            [clj-ddns-client.unilog-fix :as unilog-fix]
             ;; provider implementations
             clj-ddns-client.providers.dnsever)
   (:gen-class))
@@ -29,7 +29,8 @@
                                  :max-index 5}
                 :triggering-policy {:type :size-based
                                     ;; 51200 bytes = 50KBytes
-                                    :max-size 51200}}]})
+                                    :max-size 51200}
+                :file "clj-ddns-client.log"}]})
 
 (defn- launch-updater!
   "It launches a new thread that updates provider according to schedule.
@@ -110,7 +111,7 @@
        (-> default-log-config
            (apply-config-to-logger config)
            (apply-cli-options-to-logger cli-args)
-           start-logging!)
+           unilog-fix/start-logging!)
        ;; Start DDNS provider updaters
        (let [updaters (start-updaters! config)]
          (try

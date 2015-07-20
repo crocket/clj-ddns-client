@@ -1,16 +1,20 @@
 (ns clj-ddns-client.unilog-fix
   (:require unilog.config)
   (:import ch.qos.logback.core.rolling.RollingFileAppender
-           ch.qos.logback.core.rolling.FixedWindowRollingPolicy))
+           ch.qos.logback.core.rolling.FixedWindowRollingPolicy
+           org.slf4j.LoggerFactory
+           ch.qos.logback.classic.Logger
+           ch.qos.logback.classic.Level))
 
 (defmethod unilog.config/build-appender :rolling-file
-  [{:keys [rolling-policy triggering-policy file]
+  [{:keys [rolling-policy triggering-policy file context]
     :or {rolling-policy    :fixed-window
          triggering-policy :size-based}
     :as config}]
   (let [appender (RollingFileAppender.)]
     (assoc config :appender (doto appender
                               (.setFile file)
+                              (.setContext context)
                               (.setRollingPolicy
                                (unilog.config/build-rolling-policy
                                 (merge
@@ -27,8 +31,8 @@
 
                                    :else
                                    (throw (ex-info "invalid rolling policy"
-                                                   {:config rolling-policy}))))
-                                appender))
+                                                   {:config rolling-policy})))
+                                 {:parent appender})))
                               (.setTriggeringPolicy
                                (unilog.config/build-triggering-policy
                                 (merge {:file file}
@@ -48,13 +52,51 @@
                                                    {:config triggering-policy}))))))))))
 
 (defmethod unilog.config/build-rolling-policy :fixed-window
-  [{:keys [file pattern max-index min-index]
+  [{:keys [file pattern max-index min-index parent]
     :or {max-index 5
          min-index 1
-         pattern "%d{yyyy-MM-dd}.%i.gz"}}
-   parent]
+         pattern ".%i.gz"}}]
   (doto (FixedWindowRollingPolicy.)
     (.setFileNamePattern (str file pattern))
     (.setMinIndex (int min-index))
     (.setMaxIndex (int max-index))
-    (.setParent parent)))
+    (.setParent parent)
+    (.setContext (.getContext parent))
+    (.start)))
+
+(defn start-logging!
+  ([{:keys [external level overrides] :as config}]
+   (when-not external
+     (let [level   (get unilog.config/levels (some-> level name) Level/INFO)
+           root    (LoggerFactory/getLogger Logger/ROOT_LOGGER_NAME)
+           context (LoggerFactory/getILoggerFactory)
+           assoc-context (fn [f] (comp f #(assoc % :context context)))
+           configs (->> (merge {:console true} config)
+                        (map unilog.config/appender-config)
+                        (flatten)
+                        (remove nil?)
+                        (map (assoc-context unilog.config/build-appender))
+                        (map unilog.config/build-encoder))]
+
+       (.detachAndStopAllAppenders root)
+
+       (doseq [{:keys [encoder appender]} configs]
+         (when encoder
+           (.setContext encoder context)
+           (.start encoder))
+         (let [appender (if (fn? appender)
+                          (appender encoder context)
+                          (doto appender
+                            (.setEncoder encoder)
+                            (.setContext context)))]
+           (.start appender)
+           (.addAppender root appender)))
+
+       (.setLevel root level)
+       (doseq [[logger level] overrides
+               :let [logger (LoggerFactory/getLogger (name logger))
+                     level  (get unilog.config/levels level Level/INFO)]]
+         (.setLevel logger level))
+       root)))
+  ([]
+   (start-logging! {})))
