@@ -86,12 +86,14 @@
 
 (defn- apply-config-to-logger
   "Add logger options according to cofig.edn"
-  [log-config {:keys [log-level log-file log-file-size log-file-count]}]
+  [log-config {:keys
+               [log-level log-file log-file-size log-file-count overrides]}]
   (assoc-in-cond log-config
                  [:level] log-level
                  [:appenders 0 :file] log-file
                  [:appenders 0 :triggering-policy :max-size] log-file-size
-                 [:appenders 0 :rolling-policy :max-index] log-file-count))
+                 [:appenders 0 :rolling-policy :max-index] log-file-count
+                 [:overrides] (reduce-kv #(assoc %1 %2 (name %3)) {} overrides)))
 
 (defn- apply-cli-options-to-logger
   "Add logger options according to command line arguments"
