@@ -30,7 +30,9 @@
                 :triggering-policy {:type :size-based
                                     ;; 51200 bytes = 50KBytes
                                     :max-size 51200}
-                :file "clj-ddns-client.log"}]})
+                :file "clj-ddns-client.log"
+                :encoder :pattern
+                :pattern "%p [%d] %t - %c%n%m%n"}]})
 
 (defn- launch-updater!
   "It launches a new thread that updates provider according to schedule.
