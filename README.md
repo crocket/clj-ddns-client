@@ -37,6 +37,6 @@ x.x.x is a placeholder for a version
 
 Copyright &copy; 2015 crocket
 
-This project is licensed under the [GNU Lesser General Public License v3.0][license].
+This project is licensed under the [Mozilla Public License 2.0][license].
 
-[license]: http://www.gnu.org/licenses/lgpl-3.0.txt
+[license]: http://www.mozilla.org/MPL/2.0/
