@@ -73,8 +73,7 @@
     (if (or errors
             (-> cli-args :options :help))
       (do
-        (doseq [error errors]
-          (println error))
+        (run! println errors)
         (println (:summary cli-args)))
       (f cli-args))))
 
@@ -82,9 +81,9 @@
   "Associate a val to a nested key in a map when the val evaluates to true.
   You can specify multiple keys-val pairs."
   [m & keys-vals]
-  (reduce (fn [m [keys val]] (if val (assoc-in m keys val) m))
-          m
-          (partition 2 keys-vals)))
+  (transduce (comp (partition-all 2) (filter second))
+             (completing (fn [m [keys val]] (assoc-in m keys val)))
+             m keys-vals))
 
 (defn- apply-config-to-logger
   "Add logger options according to cofig.edn"
@@ -120,9 +119,8 @@
        (let [updaters (start-updaters! config)]
          (try
            ;; Quit the program if any provider updater stops.
-           (a/alts!! (into [] (map :updater updaters)))
+           (a/alts!! (map :updater updaters))
            (finally ; This is executed in REPL to clean up updaters.
              (println "Finished")
-             (doseq [schedule (map :schedule updaters)]
-               ;; Closing schedule kills its associated updater.
-               (a/close! schedule)))))))))
+             ;; Closing schedule kills its associated updater.
+             (run! a/close! (map :schedule updaters)))))))))
