@@ -2,7 +2,7 @@
 
 (defmulti update!
   "config = One of :providers in config.edn"
-  (fn [config] (:provider config))
+  :provider
   :default nil)
 
 (defmethod update! nil

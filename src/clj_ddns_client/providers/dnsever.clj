@@ -5,10 +5,9 @@
             [clojure.tools.logging :as log]))
 
 (defn- get-domains
-  [config]
-  (let [domain (:domain config)]
-    (map #(str % (when-not (= "" %) ".") domain)
-         (:subdomains config))))
+  [{:keys [domain subdomains] :as config}]
+  (map #(str % (when-not (= "" %) ".") domain)
+       subdomains))
 
 (defn- dnsever-ddns-update-url
   [domains]
@@ -18,12 +17,11 @@
        (str "http://dyna.dnsever.com/update.php?")))
 
 (defmethod provider/update! :dnsever
-  [config]
+  [{:keys [user authcode] :as config}]
   (let [result (-> config
                    get-domains
                    dnsever-ddns-update-url
-                   (client/get {:basic-auth [(:user config)
-                                             (:authcode config)]}))]
+                   (client/get {:basic-auth [user authcode]}))]
     (log/infof "HTTP Status = %s\n%s"
                (:status result)
                (s/trim (:body result)))))
