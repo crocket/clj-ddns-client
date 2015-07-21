@@ -54,15 +54,15 @@
   It returns [{:updater 'channel that emits when the associated thread exits'
                :schedule 'channel that signals schedules'} ...].
   Close :schedule to cancel schedules and kill its associated updater thread."
-  [config]
+  [{:keys [providers update-interval] :as config}]
   (let [times (p/periodic-seq (t/now)
-                              (-> (:update-interval config) t/seconds))]
+                              (-> update-interval t/seconds))]
     (doall (map (fn [provider]
                   (let [channel (-> 1 a/sliding-buffer a/chan)
                         schedule (chime-ch times {:ch channel})]
                     {:updater (launch-updater! schedule provider)
                      :schedule schedule}))
-                (:providers config)))))
+                providers))))
 
 (defn- handle-cli-help!
   "Print help if wrong arguments are passed or --help is passed.
