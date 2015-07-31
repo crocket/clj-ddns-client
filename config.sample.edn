@@ -5,14 +5,14 @@
               :user "User Name"
               :authcode "DDNS Authorization Code"}
              ]
- ;; Log levels = :all, :trace, :debug, :info, :warn, :error, :fatal, :off
+ ;; Log levels = :all, :trace, :debug, :info, :warn, :error, :off
  :log-level :info
  :log-file "clj-ddns-client.log"
  :log-file-size 1048576 ; 1024576 bytes = 1 MegaBytes
  :log-file-count 5 ; number of logs to keep
  :update-interval 300 ; seconds
  ;; override global log level in java classes and clojure namespaces
- ;; :overrides {"org.apache.http" "debug"
- ;;             "org.apache.http.wire" "error"}
+ ;; :overrides {"org.apache.http" :debug
+ ;;             "org.apache.http.wire" :error}
  :overrides {}
  }

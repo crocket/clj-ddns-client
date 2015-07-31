@@ -1,4 +1,4 @@
-(defproject clj-ddns-client "1.3.2"
+(defproject clj-ddns-client "1.3.3"
   :description "It updates DDNS entries of various DDNS providers."
   :url "http://github.com/crocket/clj-ddns-client"
   :license {:name "Mozilla Public License 2.0"
@@ -10,7 +10,7 @@
                  [jarohen/chime "0.1.6"]
                  [clj-http "1.1.2"]
                  ;; logging
-                 [spootnik/unilog "0.7.6"]
+                 [spootnik/unilog "0.7.8"]
                  [org.clojure/tools.logging "0.3.1"]
                  ;; cli
                  [org.clojure/tools.cli "0.3.1"]]
