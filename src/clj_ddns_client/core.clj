@@ -10,6 +10,7 @@
             [clojure.tools.cli :as cli]
             ;; provider implementations
             clj-ddns-client.providers.dnsever)
+  (:import java.io.IOException)
   (:gen-class))
 
 (def cli-options
@@ -42,6 +43,8 @@
     (when-let [time (a/<! schedule)]
       (try
         (provider/update! provider)
+        (catch IOException e
+          (log/error e))
         (catch Exception e
           (log/error e)
           (a/close! schedule)))
