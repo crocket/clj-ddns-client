@@ -43,11 +43,8 @@
     (when-let [time (a/<! schedule)]
       (try
         (provider/update! provider)
-        (catch IOException e
-          (log/error e))
         (catch Exception e
-          (log/error e)
-          (a/close! schedule)))
+          (log/error e)))
       (recur))))
 
 (defn- start-updaters!
